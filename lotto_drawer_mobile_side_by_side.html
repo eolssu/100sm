@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f7f9">
+<title>행운의 로또 추첨기</title>
+<style>
+:root{--blue:#3268f5;--ink:#111827;--muted:#697386;--line:#e2e6ed;--soft:#f0f2f6;--navy:#050a1b}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:var(--ink);background:#e9edf3}button,input,textarea{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.app{width:min(100%,540px);min-height:100dvh;margin:auto;background:#f7f8fa;overflow:hidden;box-shadow:0 0 30px #11182712}
+.stats{display:flex;justify-content:space-around;text-align:center;padding:14px 10px 15px}.stat-label{font-size:14px;color:#586273}.stat-num{font-size:19px;font-weight:800;margin-top:3px}
+.stage{height:290px;background:var(--navy);display:grid;place-items:center;position:relative;overflow:hidden}
+#lotteryCanvas{display:block;width:min(76vw,270px);height:auto;aspect-ratio:1/1;border-radius:50%;border:5px solid #3b465a;background:#10192b;box-shadow:inset 0 0 24px #0009,0 10px 25px #0005}
+.stage-caption{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#aeb8cb;font-size:12px;letter-spacing:.04em}
+.content{padding:20px 20px calc(28px + env(safe-area-inset-bottom))}
+.settings{border:1px solid var(--line);border-radius:16px;padding:13px;background:#f1f3f7}
+.label{font-size:14px;color:#525c6b;margin:0 0 8px;font-weight:650}
+.segment{display:flex;padding:3px;border-radius:999px;background:#e2e5eb;margin-bottom:14px}
+.segment button{flex:1;border:0;border-radius:999px;padding:9px 4px;background:transparent;color:#566071;font-size:14px}.segment button.active{background:white;color:#111827;font-weight:750;box-shadow:0 1px 4px #0000000d}
+.range-head{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#525c6b;margin-bottom:4px}.range-head strong{color:var(--blue)}
+input[type=range]{width:100%;accent-color:var(--blue)}.batch-count{width:100%;border:1px solid #d9deea;border-radius:9px;padding:9px 11px;margin-top:8px;background:#fff}
+.actions{display:flex;gap:10px;align-items:center;margin:16px 0}
+.primary{flex:1;min-height:47px;border:0;border-radius:999px;background:var(--blue);color:white;font-weight:800;font-size:16px;box-shadow:0 3px 8px #3268f51c}.primary:disabled{opacity:.55;cursor:wait}
+.icon-btn{width:47px;height:47px;border:0;border-radius:50%;background:#e8ebf1;color:#111827;font-size:22px;display:grid;place-items:center}
+.input-label{font-size:14px;font-weight:700;color:#505b6b;margin-bottom:8px;display:block}
+textarea{display:block;width:100%;height:82px;resize:vertical;border:1px solid #e1e5ed;border-radius:10px;background:#e9ebf1;padding:12px 13px;color:#111827;outline:none;font-size:14px}
+textarea:focus{border-color:#9bb5ff;background:white}textarea::placeholder{color:#737d8d}
+.input-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.file-label,.small-btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;background:white;color:#4b5563;padding:9px 13px;font-size:13px;font-weight:650;cursor:pointer}
+#imageInput{display:none}.file-count{font-size:12px;color:#778195}
+.add-btn{border:0;border-radius:999px;background:#98b4fa;color:white;font-weight:750;padding:10px 22px}.add-btn:hover{background:var(--blue)}
+.winner-card{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:13px;background:#f7f8fa}
+.list-title{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#606977;font-weight:700;padding-bottom:10px;border-bottom:1px solid #e6e8ed;margin-bottom:10px}
+.winner-list{display:grid;gap:8px;max-height:260px;overflow:auto}.winner{display:flex;align-items:center;gap:10px;min-height:46px;padding:8px;border:1px solid #e7e9ef;background:white;border-radius:9px;font-size:14px}
+.winner-ball{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;color:white;font-size:10px;font-weight:800;background-size:cover;background-position:center;border:2px solid white;box-shadow:0 2px 5px #0002}
+.place{font-weight:650;color:#596273;white-space:nowrap}.name{font-weight:800;color:#111827;overflow-wrap:anywhere;flex:1}
+.empty{font-size:13px;color:#8991a0;text-align:center;padding:20px 8px}
+.bottom-row{display:flex;gap:8px;margin-top:12px}.secondary{flex:1;border:1px solid var(--line);background:white;color:#4b5563;border-radius:10px;padding:10px;font-size:13px;font-weight:650}
+.modal-overlay{position:fixed;inset:0;background:#070d20d9;backdrop-filter:blur(5px);display:none;justify-content:center;align-items:center;z-index:20;padding:20px}
+.modal{background:white;padding:28px 24px;border-radius:24px;text-align:center;width:min(100%,360px);box-shadow:0 25px 50px #0004;animation:pop .28s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(.82);opacity:0}to{transform:scale(1);opacity:1}}
+.popup-ball{width:112px;height:112px;border-radius:50%;margin:0 auto 16px;display:grid;place-items:center;color:white;font-size:25px;font-weight:850;border:4px solid white;box-shadow:0 10px 24px #0003;background-size:cover;background-position:center}
+.modal h2{font-size:24px;margin:0 0 7px}.modal p{font-size:14px;color:#6b7280;margin:0 0 18px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);opacity:0;pointer-events:none;background:#171d2b;color:white;padding:11px 16px;border-radius:999px;font-size:13px;transition:.2s;max-width:90vw;text-align:center;z-index:30}.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.draw-layout{display:flex;flex-direction:row;align-items:stretch;gap:8px;padding:10px 10px 0}
+/* Keep the winner list to the right of the drum on phones too. */
+.stage{width:59%;height:280px;flex:none;border-radius:14px}
+#lotteryCanvas{width:min(48vw,250px);max-width:100%}
+.winner-card{margin-top:0;flex:1;min-width:0;padding:8px;display:flex;flex-direction:column;height:280px}
+.list-title{font-size:11px;gap:4px;align-items:flex-start;flex-direction:column;padding-bottom:7px;margin-bottom:7px}
+.winner-list{max-height:none;flex:1;min-height:0;gap:5px;align-content:start}
+.winner{gap:5px;min-height:36px;padding:4px;font-size:11px}
+.winner-ball{width:25px;height:25px;font-size:8px}
+.place{font-size:10px}
+.empty{font-size:11px;padding:12px 2px}
+@media(min-width:800px){
+  .app{width:min(100%,1180px)}
+  .draw-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);align-items:stretch;gap:18px;padding:18px 22px 0}
+  .stage{width:auto;height:480px;border-radius:18px}
+  #lotteryCanvas{width:min(34vw,390px)}
+  .winner-card{margin-top:0;height:480px;display:flex;flex-direction:column;min-width:0;padding:13px}
+  .list-title{font-size:14px;flex-direction:row;align-items:center;padding-bottom:10px;margin-bottom:10px}
+  .winner{gap:10px;min-height:46px;padding:8px;font-size:14px}
+  .winner-ball{width:34px;height:34px;font-size:10px}
+  .winner-list{max-height:none;flex:1;min-height:0;align-content:start}
+  .content{padding:18px 22px calc(28px + env(safe-area-inset-bottom))}
+}
+@media(min-width:541px) and (max-width:799px){.app{width:min(100%,650px)}}
+
+@media(min-width:541px){body{padding:20px 0}.app{border-radius:24px;min-height:calc(100dvh - 40px)}}
+@media(max-width:380px){.draw-layout{gap:6px;padding-left:6px;padding-right:6px}.stage,.winner-card{height:250px}.stage{width:57%}#lotteryCanvas{width:min(45vw,220px)}.winner-card{padding:6px}.content{padding-left:14px;padding-right:14px}.settings{padding:11px}.stats{padding-top:12px}.segment button{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="stats">
+    <div><div class="stat-label">총 참가자</div><div class="stat-num" id="totalCount">0</div></div>
+    <div><div class="stat-label">남은 볼</div><div class="stat-num" id="remainingCount">0</div></div>
+    <div><div class="stat-label">당첨자</div><div class="stat-num" id="winnerCount">0</div></div>
+  </header>
+  <div class="draw-layout">
+  <section class="stage">
+    <canvas id="lotteryCanvas" width="540" height="540" aria-label="원형 로또 추첨통"></canvas>
+    <div class="stage-caption" id="stageCaption">행운의 공을 준비했어요</div>
+  </section>
+    <section class="winner-card">
+      <div class="list-title"><span>🏆 당첨자 명단 (<span id="winnerCount2">0</span>)</span><span id="modeCaption">개별 추첨</span></div>
+      <div class="winner-list" id="winnerList"><div class="empty">명단을 적용한 뒤 추첨하기를 눌러주세요.</div></div>
+      <div class="bottom-row">
+        <button class="secondary" id="copyBtn" type="button">명단 복사</button>
+        <button class="secondary" id="clearWinnersBtn" type="button">당첨 결과 지우기</button>
+      </div>
+    </section>
+  </div>
+  <main class="content">
+    <section class="settings">
+      <p class="label">추첨 방식</p>
+      <div class="segment" role="group" aria-label="추첨 방식">
+        <button id="singleMode" class="active" type="button">개별 추첨</button>
+        <button id="batchMode" type="button">일괄 추첨</button>
+      </div>
+      <div id="singleHint" class="range-head"><span>한 번에 한 명씩 추첨</span><strong>1명</strong></div>
+      <div id="batchSettings" style="display:none">
+        <div class="range-head"><label for="drawCount">추첨 인원수</label><strong><span id="drawCountLabel">3</span>명</strong></div>
+        <input id="drawCount" type="range" min="1" max="10" value="3">
+      </div>
+    </section>
+    <div class="actions">
+      <button class="primary" id="drawBtn" type="button">✦ ✨ 추첨하기</button>
+      <button class="icon-btn" id="resetBtn" type="button" aria-label="초기화" title="초기화">↻</button>
+    </div>
+    <section>
+      <label class="input-label" for="namesInput">추첨 대상 이름</label>
+      <textarea id="namesInput" placeholder="이름 입력 (쉼표 또는 줄바꿈 구분)">홍길동, 김철수, 이영희, 박민수, 최지우, 정호석</textarea>
+      <div class="input-tools">
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+          <label class="file-label" for="imageInput">📷 프로필 이미지 등록</label>
+          <input type="file" id="imageInput" accept="image/*" multiple>
+          <span class="file-count" id="fileCount">선택 사항</span>
+        </div>
+        <button class="add-btn" id="addBtn" type="button">명단 적용</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="popupName">
+  <div class="modal">
+    <div id="modalSubTitle" style="font-weight:700;color:#3268f5;margin-bottom:14px">🎉 축하합니다!</div>
+    <div class="popup-ball" id="popupBall"></div>
+    <h2 id="popupName">당첨자</h2>
+    <p id="popupDesc">행운의 주인공입니다.</p>
+    <button class="primary" id="modalOk" type="button">확인</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const canvas = $('lotteryCanvas'), ctx = canvas.getContext('2d');
+const W = canvas.width, C = W/2, drumR = W/2-12;
+const palette = ['#ff542b','#a725bf','#fa347d','#267df5','#17a978','#f59e0b','#0ea5e9','#ef4444','#8b5cf6','#14b8a6'];
+let participants=[], balls=[], winners=[], uploadedImages=[], mode='single', drawing=false, mixState=false, frame=0, toastTimer=null, drawTimer=null;
+const rand=(a,b)=>a+Math.random()*(b-a);
+class Ball {
+  constructor(name,img,color){
+    this.name=name;this.img=img||null;this.color=color||palette[Math.floor(Math.random()*palette.length)];
+    // Match the attached source's 380px canvas physics, scaled for this 540px canvas.
+    const scale=W/380;
+    this.r=22*scale;
+    this.x=C+(Math.random()-.5)*120*scale;
+    this.y=C+(Math.random()-.5)*120*scale;
+    this.vx=(Math.random()-.5)*10*scale;
+    this.vy=(Math.random()-.5)*10*scale;
+  }
+  update(){
+    const scale=W/380;
+    if(mixState){
+      this.vx+=(Math.random()-.5)*6*scale;
+      this.vy+=(Math.random()-.5)*6*scale;
+      const speed=Math.hypot(this.vx,this.vy),maxSpeed=24*scale;
+      if(speed>maxSpeed){this.vx=this.vx/speed*maxSpeed;this.vy=this.vy/speed*maxSpeed}
+    }else{
+      this.vx*=.95;this.vy*=.95;
+      this.vx+=(Math.random()-.5)*.3*scale;
+      this.vy+=(Math.random()-.5)*.3*scale;
+    }
+    this.x+=this.vx;this.y+=this.vy;
+    const dx=this.x-C,dy=this.y-C,dist=Math.hypot(dx,dy)||.001;
+    const limit=W/2-12*scale-this.r;
+    if(dist+this.r>W/2-12*scale){
+      const nx=dx/dist,ny=dy/dist;
+      this.x=C+nx*limit;this.y=C+ny*limit;
+      const dot=this.vx*nx+this.vy*ny;
+      this.vx-=2*dot*nx;this.vy-=2*dot*ny;
+      this.vx*=.85;this.vy*=.85;
+    }
+  }
+  draw(){
+    ctx.save();ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.closePath();ctx.clip();
+    if(this.img){ctx.drawImage(this.img,this.x-this.r,this.y-this.r,this.r*2,this.r*2)}
+    else{ctx.fillStyle=this.color;ctx.fill()}
+    ctx.restore();
+    ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=2.8;ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font=`bold ${11*W/380}px Pretendard,system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor='rgba(0,0,0,.8)';ctx.shadowBlur=4*W/380;
+    const label=this.name.length>3?this.name.substring(0,2)+'..':this.name;
+    ctx.fillText(label,this.x,this.y);ctx.shadowBlur=0;ctx.restore();
+  }
+}
+function makeBalls(){
+  const names=participants.filter(n=>!winners.some(w=>w.name===n));
+  balls=names.map((name,i)=>new Ball(name,uploadedImages[i]||null));
+}
+function animate(){
+  ctx.clearRect(0,0,W,W);
+  const bg=ctx.createRadialGradient(C,C,drumR*.1,C,C,drumR);bg.addColorStop(0,'#192943');bg.addColorStop(1,'#0a1222');ctx.fillStyle=bg;ctx.fillRect(0,0,W,W);
+  ctx.beginPath();ctx.arc(C,C,drumR,0,Math.PI*2);ctx.strokeStyle='#536176';ctx.lineWidth=8;ctx.stroke();
+  ctx.beginPath();ctx.arc(C,C,drumR-13,0,Math.PI*2);ctx.strokeStyle='#25344b';ctx.lineWidth=2;ctx.setLineDash([5,8]);ctx.stroke();ctx.setLineDash([]);
+  // Ball-to-ball overlap resolution copied from the attached source.
+  for(let i=0;i<balls.length;i++){
+    for(let j=i+1;j<balls.length;j++){
+      const a=balls[i],b=balls[j];
+      const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy);
+      const minDist=a.r+b.r;
+      if(dist<minDist && dist>0.001){
+        const overlap=minDist-dist,nx=dx/dist,ny=dy/dist;
+        a.x-=nx*overlap*.5;a.y-=ny*overlap*.5;
+        b.x+=nx*overlap*.5;b.y+=ny*overlap*.5;
+      }
+    }
+    balls[i].update();balls[i].draw();
+  }
+  frame=requestAnimationFrame(animate);
+}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2300)}
+function updateStats(){
+  $('totalCount').textContent=participants.length;$('remainingCount').textContent=balls.length;
+  $('winnerCount').textContent=winners.length;$('winnerCount2').textContent=winners.length;
+  $('drawCount').max=Math.max(1,balls.length);if(+$('drawCount').value>+$('drawCount').max)$('drawCount').value=$('drawCount').max;
+  $('drawCountLabel').textContent=$('drawCount').value;
+}
+function renderWinners(){
+  const list=$('winnerList');list.innerHTML='';
+  if(!winners.length){list.innerHTML='<div class="empty">아직 당첨자가 없어요. 행운의 주인공을 뽑아보세요!</div>';return}
+  winners.forEach((w,i)=>{
+    const row=document.createElement('div');row.className='winner';
+    const ball=document.createElement('div');ball.className='winner-ball';ball.style.backgroundColor=w.color;
+    if(w.img)ball.style.backgroundImage=`url("${w.img.src}")`;else ball.textContent=w.name.slice(0,2);
+    const place=document.createElement('span');place.className='place';place.textContent=`${i+1}등`;
+    const name=document.createElement('span');name.className='name';name.textContent=w.name;
+    row.append(ball,place,name);list.appendChild(row);
+  });
+}
+function refresh(){updateStats();renderWinners();makeBalls()}
+function applyNames(){
+  const names=[...new Set($('namesInput').value.split(/[,，、\n\r]+/).map(s=>s.trim()).filter(Boolean))];
+  if(!names.length){toast('추첨할 이름을 입력해주세요.');return}
+  participants=names;winners=[];makeBalls();refresh();
+  $('stageCaption').textContent=`${participants.length}개의 공이 준비됐어요`;
+  toast(`${participants.length}명의 참가자를 적용했어요.`);
+}
+function setMode(next){
+  if(drawing)return;mode=next;
+  $('singleMode').classList.toggle('active',mode==='single');$('batchMode').classList.toggle('active',mode==='batch');
+  $('batchSettings').style.display=mode==='batch'?'block':'none';$('singleHint').style.display=mode==='single'?'flex':'none';
+  $('modeCaption').textContent=mode==='single'?'개별 추첨':'일괄 추첨';
+}
+function showModal(w,title,desc){
+  $('modalSubTitle').textContent=title;$('popupName').textContent=w.name;$('popupDesc').textContent=desc||'행운의 주인공입니다!';
+  const p=$('popupBall');p.style.backgroundImage=w.img?`url("${w.img.src}")`:'none';p.style.backgroundColor=w.color;p.textContent=w.img?'':w.name.slice(0,2);
+  $('modalOverlay').style.display='flex';
+}
+function closeModal(){$('modalOverlay').style.display='none'}
+function finishDraw(){drawing=false;mixState=false;$('drawBtn').disabled=false;$('drawBtn').textContent='✦ ✨ 추첨하기';$('namesInput').disabled=false;$('imageInput').disabled=false;$('addBtn').disabled=false;$('stageCaption').textContent='추첨 완료!';refresh()}
+function startDrawing(){
+  if(drawing)return;
+  if(!balls.length){toast(participants.length?'모든 참가자가 당첨됐어요. 초기화하거나 명단을 다시 적용하세요.':'먼저 참가자 명단을 적용해주세요.');return}
+  drawing=true;$('drawBtn').disabled=true;$('drawBtn').textContent='🎱 공을 섞는 중…';$('namesInput').disabled=true;$('imageInput').disabled=true;$('addBtn').disabled=true;
+  mixState=true;$('stageCaption').textContent='행운의 공을 섞고 있어요…';
+  const count=mode==='single'?1:Math.min(Math.max(1,parseInt($('drawCount').value)||1),balls.length);
+  const started=performance.now();
+  // Keep every ball in the drum while mixing. The winner is removed only after the popup appears.
+  const initialMixMs = mode==='batch' ? 2000 : 3000;
+  function waitMix(){
+    if(performance.now()-started<initialMixMs){drawTimer=setTimeout(waitMix,50);return}
+    mixState=false;
+    if(mode==='single'){
+      const idx=Math.floor(Math.random()*balls.length);
+      const w=balls[idx];
+      showModal(w,'🎉 개별 추첨 당첨자',`축하합니다! ${w.name}님이 당첨됐어요.`);
+      winners.push(w);refresh();finishDraw();
+      $('modalOk').onclick=closeModal;
+    }else{
+      let i=0, popupTimer=null, mixTimer=null, advancing=false;
+      function revealNext(){
+        if(i>=count){closeModal();finishDraw();toast(`${count}명의 당첨자를 뽑았어요!`);return}
+        if(!balls.length){closeModal();finishDraw();toast('남은 공이 없어 추첨을 마쳤어요.');return}
+        const idx=Math.floor(Math.random()*balls.length);
+        const w=balls[idx];
+        i++;
+        showModal(w,`🎉 일괄 추첨 (${i}/${count})`,`축하합니다! ${w.name}님이 당첨됐어요.`);
+        // Reveal first, then remove the winner from the drum.
+        winners.push(w);refresh();
+        advancing=false;
+        clearTimeout(popupTimer);
+        popupTimer=setTimeout(()=>advance(),1000);
+      }
+      function advance(){
+        if(advancing)return;advancing=true;clearTimeout(popupTimer);closeModal();
+        if(i>=count){finishDraw();toast(`${count}명의 당첨자를 뽑았어요!`);return}
+        mixState=true;$('stageCaption').textContent='다음 당첨자를 위해 공을 섞고 있어요…';
+        mixTimer=setTimeout(()=>{mixState=false;revealNext()},2000);
+      }
+      $('modalOk').onclick=advance;
+      revealNext();
+    }
+  }
+  waitMix();
+}
+$('singleMode').addEventListener('click',()=>setMode('single'));$('batchMode').addEventListener('click',()=>setMode('batch'));
+$('drawCount').addEventListener('input',()=>$('drawCountLabel').textContent=$('drawCount').value);
+$('drawBtn').addEventListener('click',startDrawing);$('addBtn').addEventListener('click',applyNames);
+$('namesInput').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')applyNames()});
+$('imageInput').addEventListener('change',async e=>{
+  const files=[...e.target.files];uploadedImages=[];$('fileCount').textContent=files.length?`${files.length}개 이미지 선택됨`:'선택 사항';
+  const loaded=await Promise.all(files.map(file=>new Promise(resolve=>{const url=URL.createObjectURL(file),img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=url})));
+  uploadedImages=loaded.filter(Boolean);toast(`${uploadedImages.length}개의 프로필 이미지를 불러왔어요.`);
+});
+$('resetBtn').addEventListener('click',()=>{
+  if(drawing)return;participants=[];winners=[];uploadedImages=[];$('namesInput').value='';$('imageInput').value='';$('fileCount').textContent='선택 사항';$('finalList')?.replaceChildren();makeBalls();refresh();$('stageCaption').textContent='이름을 적용하면 공이 준비돼요';toast('참가자와 당첨 결과를 초기화했어요.');
+});
+$('clearWinnersBtn').addEventListener('click',()=>{if(drawing)return;winners=[];makeBalls();refresh();$('stageCaption').textContent='당첨 결과를 지웠어요';toast('당첨 결과를 지웠어요.')});
+$('copyBtn').addEventListener('click',async()=>{
+  if(!winners.length){toast('복사할 당첨자 명단이 없어요.');return}
+  const text=winners.map((w,i)=>`${i+1}등 당첨자: ${w.name}`).join('\n');
+  try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
+  toast('당첨자 명단을 복사했어요.');
+});
+$('modalOk').addEventListener('click',closeModal);
+$('modalOverlay').addEventListener('click',e=>{if(e.target===$('modalOverlay')&&!drawing)closeModal()});
+applyNames();setMode('single');animate();
+})();
+</script>
+</body>
+</html>
