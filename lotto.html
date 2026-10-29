@@ -46,8 +46,8 @@ textarea:focus{border-color:#9bb5ff;background:white}textarea::placeholder{color
 
 .draw-layout{display:flex;flex-direction:row;align-items:stretch;gap:8px;padding:10px 10px 0}
 /* Keep the winner list to the right of the drum on phones too. */
-.stage{width:59%;height:280px;flex:none;border-radius:14px}
-#lotteryCanvas{width:min(48vw,250px);max-width:100%}
+.stage{width:60%;height:280px;flex:none;border-radius:14px}
+#lotteryCanvas{width:calc(100% - 4px);max-width:100%;max-height:calc(100% - 34px);height:auto;aspect-ratio:1/1;object-fit:contain}
 .winner-card{margin-top:0;flex:1;min-width:0;padding:8px;display:flex;flex-direction:column;height:280px}
 .list-title{font-size:11px;gap:4px;align-items:flex-start;flex-direction:column;padding-bottom:7px;margin-bottom:7px}
 .winner-list{max-height:none;flex:1;min-height:0;gap:5px;align-content:start}
@@ -59,7 +59,7 @@ textarea:focus{border-color:#9bb5ff;background:white}textarea::placeholder{color
   .app{width:min(100%,1180px)}
   .draw-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);align-items:stretch;gap:18px;padding:18px 22px 0}
   .stage{width:auto;height:480px;border-radius:18px}
-  #lotteryCanvas{width:min(34vw,390px)}
+  #lotteryCanvas{width:calc(100% - 24px);max-width:440px;max-height:calc(100% - 42px)}
   .winner-card{margin-top:0;height:480px;display:flex;flex-direction:column;min-width:0;padding:13px}
   .list-title{font-size:14px;flex-direction:row;align-items:center;padding-bottom:10px;margin-bottom:10px}
   .winner{gap:10px;min-height:46px;padding:8px;font-size:14px}
@@ -70,7 +70,7 @@ textarea:focus{border-color:#9bb5ff;background:white}textarea::placeholder{color
 @media(min-width:541px) and (max-width:799px){.app{width:min(100%,650px)}}
 
 @media(min-width:541px){body{padding:20px 0}.app{border-radius:24px;min-height:calc(100dvh - 40px)}}
-@media(max-width:380px){.draw-layout{gap:6px;padding-left:6px;padding-right:6px}.stage,.winner-card{height:250px}.stage{width:57%}#lotteryCanvas{width:min(45vw,220px)}.winner-card{padding:6px}.content{padding-left:14px;padding-right:14px}.settings{padding:11px}.stats{padding-top:12px}.segment button{font-size:13px}}
+@media(max-width:380px){.draw-layout{gap:6px;padding-left:6px;padding-right:6px}.stage,.winner-card{height:250px}.stage{width:57%}#lotteryCanvas{width:calc(100% - 4px);max-height:calc(100% - 34px)}.winner-card{padding:6px}.content{padding-left:14px;padding-right:14px}.settings{padding:11px}.stats{padding-top:12px}.segment button{font-size:13px}}
 </style>
 </head>
 <body>
@@ -86,11 +86,10 @@ textarea:focus{border-color:#9bb5ff;background:white}textarea::placeholder{color
     <div class="stage-caption" id="stageCaption">행운의 공을 준비했어요</div>
   </section>
     <section class="winner-card">
-      <div class="list-title"><span>🏆 당첨자 명단 (<span id="winnerCount2">0</span>)</span><span id="modeCaption">개별 추첨</span></div>
+      <div class="list-title"><span>🏆 당첨자 명단 (<span id="winnerCount2">0</span>)</span></div>
       <div class="winner-list" id="winnerList"><div class="empty">명단을 적용한 뒤 추첨하기를 눌러주세요.</div></div>
       <div class="bottom-row">
-        <button class="secondary" id="copyBtn" type="button">명단 복사</button>
-        <button class="secondary" id="clearWinnersBtn" type="button">당첨 결과 지우기</button>
+        <button class="secondary" id="clearWinnersBtn" type="button">결과 지우기</button>
       </div>
     </section>
   </div>
@@ -140,7 +139,7 @@ textarea:focus{border-color:#9bb5ff;background:white}textarea::placeholder{color
 (() => {
 const $ = id => document.getElementById(id);
 const canvas = $('lotteryCanvas'), ctx = canvas.getContext('2d');
-const W = canvas.width, C = W/2, drumR = W/2-12;
+const W = canvas.width, C = W/2, drumR = W/2-5;
 const palette = ['#ff542b','#a725bf','#fa347d','#267df5','#17a978','#f59e0b','#0ea5e9','#ef4444','#8b5cf6','#14b8a6'];
 let participants=[], balls=[], winners=[], uploadedImages=[], mode='single', drawing=false, mixState=false, frame=0, toastTimer=null, drawTimer=null;
 const rand=(a,b)=>a+Math.random()*(b-a);
@@ -246,7 +245,6 @@ function setMode(next){
   if(drawing)return;mode=next;
   $('singleMode').classList.toggle('active',mode==='single');$('batchMode').classList.toggle('active',mode==='batch');
   $('batchSettings').style.display=mode==='batch'?'block':'none';$('singleHint').style.display=mode==='single'?'flex':'none';
-  $('modeCaption').textContent=mode==='single'?'개별 추첨':'일괄 추첨';
 }
 function showModal(w,title,desc){
   $('modalSubTitle').textContent=title;$('popupName').textContent=w.name;$('popupDesc').textContent=desc||'행운의 주인공입니다!';
@@ -313,12 +311,6 @@ $('resetBtn').addEventListener('click',()=>{
   if(drawing)return;participants=[];winners=[];uploadedImages=[];$('namesInput').value='';$('imageInput').value='';$('fileCount').textContent='선택 사항';$('finalList')?.replaceChildren();makeBalls();refresh();$('stageCaption').textContent='이름을 적용하면 공이 준비돼요';toast('참가자와 당첨 결과를 초기화했어요.');
 });
 $('clearWinnersBtn').addEventListener('click',()=>{if(drawing)return;winners=[];makeBalls();refresh();$('stageCaption').textContent='당첨 결과를 지웠어요';toast('당첨 결과를 지웠어요.')});
-$('copyBtn').addEventListener('click',async()=>{
-  if(!winners.length){toast('복사할 당첨자 명단이 없어요.');return}
-  const text=winners.map((w,i)=>`${i+1}등 당첨자: ${w.name}`).join('\n');
-  try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
-  toast('당첨자 명단을 복사했어요.');
-});
 $('modalOk').addEventListener('click',closeModal);
 $('modalOverlay').addEventListener('click',e=>{if(e.target===$('modalOverlay')&&!drawing)closeModal()});
 applyNames();setMode('single');animate();
