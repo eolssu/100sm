@@ -63,6 +63,7 @@
         }
 
         body {
+            overscroll-behavior : contain;
             font-family: 'Arial', sans-serif;
             line-height: 1.6;
             background-color: #f0f2f5;
@@ -897,30 +898,6 @@
             cursor: wait;
         }
 
-        .lotto-icon-btn {
-            width: 47px;
-            height: 47px;
-            border: 0;
-            border-radius: 50%;
-            background: #e8ebf1 !important;
-            color: #111827 !important;
-            font-size: 22px;
-            display: grid;
-            place-items: center;
-        }
-
-        .lotto-icon-btn:hover {
-            background: #dce0e8 !important;
-        }
-
-        .lotto-input-label {
-            font-size: 14px;
-            font-weight: 700;
-            color: #505b6b;
-            margin-bottom: 8px;
-            display: block;
-        }
-
         .lotto-app textarea {
             display: block;
             width: 100%;
@@ -942,52 +919,6 @@
 
         .lotto-app textarea::placeholder {
             color: #737d8d;
-        }
-
-        .lotto-input-tools {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-
-        .lotto-file-label,
-        .lotto-small-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--lotto-line);
-            border-radius: 999px;
-            background: white !important;
-            color: #4b5563 !important;
-            padding: 9px 13px;
-            font-size: 13px;
-            font-weight: 650;
-            cursor: pointer;
-        }
-
-        #imageInput {
-            display: none;
-        }
-
-        .lotto-file-count {
-            font-size: 12px;
-            color: #778195;
-        }
-
-        .lotto-add-btn {
-            border: 0;
-            border-radius: 999px;
-            background: #98b4fa !important;
-            color: white !important;
-            font-weight: 750;
-            padding: 10px 22px;
-        }
-
-        .lotto-add-btn:hover {
-            background: var(--lotto-blue) !important;
         }
 
         .lotto-secondary {
@@ -1341,22 +1272,9 @@
                     </div>
                 </section>
                 <div class="lotto-actions">
-                    <button class="lotto-primary" id="drawBtn" type="button">✦ ✨ 추첨하기</button>
-                    <button class="lotto-icon-btn" id="resetBtn" type="button" aria-label="초기화" title="초기화">↻</button>
+                    <button class="lotto-primary" id="importParticipantsBtn" type="button">👫 맴버갱신</button>
+                    <button class="lotto-primary" id="drawBtn" type="button">✨ 추첨하기</button>
                 </div>
-                <section>
-                    <label class="lotto-input-label" for="namesInput">추첨 대상 이름</label>
-                    <textarea id="namesInput" placeholder="이름 입력 (쉼표 또는 줄바꿈 구분)">홍길동, 김철수, 이영희, 박민수, 최지우, 정호석</textarea>
-                    <div class="lotto-input-tools">
-                        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
-                            <label class="lotto-file-label" for="imageInput">📷 프로필 이미지 등록</label>
-                            <input type="file" id="imageInput" accept="image/*" multiple>
-                            <span class="lotto-file-count" id="fileCount">선택 사항</span>
-                            <button class="lotto-small-btn" id="importParticipantsBtn" type="button">참가 맴버 가져오기</button>
-                        </div>
-                        <button class="lotto-add-btn" id="addBtn" type="button">명단 적용</button>
-                    </div>
-                </section>
             </main>
         </div>
     </div>
@@ -1376,6 +1294,7 @@
         // 참가자 목록을 저장할 Set (중복 방지)
         const participants = new Set();
         let isFetching = false;  // 가져오기 진행 중 여부를 추적하는 변수
+		let lottoNames = "";
 
         function getNickImgByUsrNo(userNo, type = "N") {
             if (!userNo) return;
@@ -2316,7 +2235,7 @@
                 constructor(name, img, color) {
                     this.name = name; this.img = img || null; this.color = color || palette[Math.floor(Math.random() * palette.length)];
                     const scale = W / 380;
-                    this.r = 22 * scale;
+                    this.r = 24 * scale;
                     this.x = C + (Math.random() - .5) * 120 * scale;
                     this.y = C + (Math.random() - .5) * 120 * scale;
                     this.vx = (Math.random() - .5) * 10 * scale;
@@ -2357,9 +2276,13 @@
                     ctx.fillText(label, this.x, this.y); ctx.shadowBlur = 0;
                 }
             }
+            function imageForName(name) {
+                const idx = lottoParticipants.indexOf(name);
+                return idx >= 0 ? (uploadedImages[idx] || null) : null;
+            }
             function makeBalls() {
                 const names = lottoParticipants.filter(n => !winners.some(w => w.name === n));
-                balls = names.map((name, i) => new Ball(name, uploadedImages[i] || null));
+                balls = names.map(name => new Ball(name, imageForName(name)));
             }
             function animate() {
                 ctx.clearRect(0, 0, W, W);
@@ -2402,7 +2325,7 @@
             }
             function refresh() { updateStats(); renderWinners(); makeBalls() }
             function applyNames() {
-                const names = [...new Set($('namesInput').value.split(/[,，、\n\r]+/).map(s => s.trim()).filter(Boolean))];
+                const names = [...new Set(lottoNames.split(/[,，、\n\r]+/).map(s => s.trim()).filter(Boolean))];
                 if (!names.length) { toast('추첨할 이름을 입력해주세요.'); return }
                 lottoParticipants = names; winners = []; makeBalls(); refresh();
                 $('stageCaption').textContent = `${lottoParticipants.length}개의 공이 준비됐어요`;
@@ -2419,12 +2342,11 @@
                 $('modalOverlay').style.display = 'flex';
             }
             function closeModal() { $('modalOverlay').style.display = 'none' }
-            function finishDraw() { drawing = false; mixState = false; $('drawBtn').disabled = false; $('drawBtn').textContent = '✦ ✨ 추첨하기'; $('namesInput').disabled = false; $('imageInput').disabled = false; $('addBtn').disabled = false; $('stageCaption').textContent = '추첨 완료!'; refresh() }
+            function finishDraw() { drawing = false; mixState = false; $('drawBtn').disabled = false; $('drawBtn').textContent = '✦ ✨ 추첨하기'; $('stageCaption').textContent = '추첨 완료!'; refresh() }
             function startDrawing() {
                 if (drawing) return;
                 if (!balls.length) { toast(lottoParticipants.length ? '모든 참가자가 당첨됐어요. 초기화하거나 명단을 다시 적용하세요.' : '먼저 참가자 명단을 적용해주세요.'); return }
-                drawing = true; $('drawBtn').disabled = true; $('drawBtn').textContent = '🎱 공을 섞는 중…'; $('namesInput').disabled = true; $('imageInput').disabled = true; $('addBtn').disabled = true;
-                mixState = true; $('stageCaption').textContent = '행운의 공을 섞고 있어요…';
+                drawing = true; $('drawBtn').disabled = true; $('drawBtn').textContent = '🎱 공을 섞는 중…'; mixState = true; $('stageCaption').textContent = '행운의 공을 섞고 있어요…';
                 const count = mode === 'single' ? 1 : Math.min(Math.max(1, parseInt($('drawCount').value) || 1), balls.length);
                 const started = performance.now();
                 const initialMixMs = mode === 'batch' ? 2000 : 3000;
@@ -2486,23 +2408,13 @@
                         images.push(null);
                     }
                 }
-                $('namesInput').value = names.join(', ');
+                lottoNames = names.join(', ');
                 uploadedImages = images;
-                $('fileCount').textContent = images.filter(Boolean).length ? `${images.filter(Boolean).length}개 이미지 불러옴` : '선택 사항';
                 applyNames();
             }
             $('singleMode').addEventListener('click', () => setMode('single')); $('batchMode').addEventListener('click', () => setMode('batch'));
             $('drawCount').addEventListener('input', () => $('drawCountLabel').textContent = $('drawCount').value);
-            $('drawBtn').addEventListener('click', startDrawing); $('addBtn').addEventListener('click', applyNames);
-            $('namesInput').addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') applyNames() });
-            $('imageInput').addEventListener('change', async e => {
-                const files = [...e.target.files]; uploadedImages = []; $('fileCount').textContent = files.length ? `${files.length}개 이미지 선택됨` : '선택 사항';
-                const loaded = await Promise.all(files.map(file => new Promise(resolve => { const url = URL.createObjectURL(file), img = new Image(); img.onload = () => resolve(img); img.onerror = () => resolve(null); img.src = url })));
-                uploadedImages = loaded.filter(Boolean); toast(`${uploadedImages.length}개의 프로필 이미지를 불러왔어요.`);
-            });
-            $('resetBtn').addEventListener('click', () => {
-                if (drawing) return; lottoParticipants = []; winners = []; uploadedImages = []; $('namesInput').value = ''; $('imageInput').value = ''; $('fileCount').textContent = '선택 사항'; makeBalls(); refresh(); $('stageCaption').textContent = '이름을 적용하면 공이 준비돼요'; toast('참가자와 당첨 결과를 초기화했어요.');
-            });
+            $('drawBtn').addEventListener('click', startDrawing);
             $('clearWinnersBtn').addEventListener('click', () => { if (drawing) return; winners = []; makeBalls(); refresh(); $('stageCaption').textContent = '당첨 결과를 지웠어요'; toast('당첨 결과를 지웠어요.') });
             $('importParticipantsBtn').addEventListener('click', importFromTeamParticipants);
             $('modalOk').addEventListener('click', closeModal);
