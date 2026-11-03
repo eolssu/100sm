@@ -126,7 +126,7 @@
             background-color: #1557b0;
         }
 
-        .get-members-section, .update-sheet-section {
+        .get-members-section {
             background-color: #f8f9fa;
             padding: 10px;
             border-radius: 4px;
@@ -145,7 +145,7 @@
             flex-grow: 1;
         }
 
-        .get-members-section button, .update-sheet-section button {
+        .get-members-section button {
             padding: 8px 0px;
             font-size: 16px;
             background-color: #4CAF50;
@@ -155,7 +155,7 @@
             cursor: pointer;
         }
 
-        .get-members-section button:hover, .update-sheet-section button:hover {
+        .get-members-section button:hover {
             background-color: #45a049;
         }
 
@@ -602,9 +602,8 @@
             --lotto-ink: #111827;
             --lotto-muted: #697386;
             --lotto-line: #e2e6ed;
-            --lotto-navy: #050a1b;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
             background: #f7f8fa;
             overflow: hidden;
             border-radius: 8px;
@@ -679,7 +678,7 @@
             flex-direction: row;
             align-items: stretch;
             gap: 8px;
-            padding: 10px 10px 0;
+            padding: 10px 0px 0;
         }
 
         .lotto-stage {
@@ -687,7 +686,7 @@
             height: 100%;
             flex: none;
             border-radius: 14px;
-            background: var(--lotto-navy);
+            background: #050a1b;
             display: grid;
             place-items: center;
             position: relative;
@@ -710,12 +709,12 @@
 
         .lotto-stage-caption {
             position: absolute;
-            bottom: 12px;
+            bottom: 2px;
             left: 0;
             right: 0;
             text-align: center;
             color: #aeb8cb;
-            font-size: 12px;
+            font-size: 14px;
             letter-spacing: .04em;
         }
 
@@ -726,7 +725,7 @@
             padding: 8px;
             display: flex;
             flex-direction: column;
-            height: 280px;
+            height: auto;
             border: 1px solid var(--lotto-line);
             border-radius: 12px;
             background: #f7f8fa;
@@ -737,7 +736,7 @@
             justify-content: space-between;
             align-items: flex-start;
             flex-direction: column;
-            font-size: 11px;
+            font-size: 14px;
             color: #606977;
             font-weight: 700;
             gap: 4px;
@@ -750,8 +749,8 @@
             display: grid;
             gap: 5px;
             flex: 1;
-            min-height: 0;
-            overflow: auto;
+            min-height: auto;
+            overflow: visible;
             align-content: start;
         }
 
@@ -764,12 +763,12 @@
             border: 1px solid #e7e9ef;
             background: white;
             border-radius: 9px;
-            font-size: 11px;
+            font-size: 14px;
         }
 
         .lotto-winner-ball {
-            width: 25px;
-            height: 25px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             flex: none;
             display: grid;
@@ -787,7 +786,7 @@
             font-weight: 650;
             color: #596273;
             white-space: nowrap;
-            font-size: 10px;
+            font-size: 14px;
         }
 
         .lotto-name {
@@ -798,7 +797,7 @@
         }
 
         .lotto-empty {
-            font-size: 11px;
+            font-size: 14px;
             color: #8991a0;
             text-align: center;
             padding: 12px 2px;
@@ -811,7 +810,7 @@
         }
 
         .lotto-content {
-            padding: 20px 20px calc(28px + env(safe-area-inset-bottom));
+            padding: 10px 10px 10px;
         }
 
         .lotto-settings {
@@ -922,21 +921,6 @@
 
         .lotto-app textarea::placeholder {
             color: #737d8d;
-        }
-
-        .lotto-secondary {
-            flex: 1;
-            border: 1px solid var(--lotto-line);
-            background: white !important;
-            color: #4b5563 !important;
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 13px;
-            font-weight: 650;
-        }
-
-        .lotto-secondary:hover {
-            background: #f3f4f6 !important;
         }
 
         .lotto-modal-overlay {
@@ -1224,11 +1208,6 @@
             </div>
         </div>
 
-        <div class="update-sheet-section">
-            <!-- <button onclick="updateMemberSheet(this)">회원명부시트 갱신</button>
-            <button onclick="updateRankingSheet(this)">상금랭킹시트 갱신</button> -->
-        </div>
-
         <div class="lotto-app">
             <h2>행운의 로또 추첨기</h2>
             <header class="lotto-stats">
@@ -1245,22 +1224,17 @@
                     <div class="lotto-stat-num" id="winnerCount">0</div>
                 </div>
             </header>
-            <div class="lotto-draw-layout">
-                <section class="lotto-stage">
-                    <canvas id="lotteryCanvas" width="540" height="540" aria-label="원형 로또 추첨통"></canvas>
-                    <div class="lotto-stage-caption" id="stageCaption">행운의 공을 준비했어요</div>
-                </section>
-            </div>
+		</div>
+
+		<div class="lotto-draw-layout">
+			<section class="lotto-stage">
+				<canvas id="lotteryCanvas" width="540" height="540" aria-label="원형 로또 추첨통"></canvas>
+				<div class="lotto-stage-caption" id="stageCaption">행운의 공을 준비했어요</div>
+			</section>
+		</div>
+		
+		<div class="lotto-app">
             <main class="lotto-content">
-                <section class="lotto-winner-card">
-                    <div class="lotto-list-title"><span>🏆 당첨자 명단 (<span id="winnerCount2">0</span>)</span></div>
-                    <div class="lotto-winner-list" id="winnerList">
-                        <div class="lotto-empty">명단을 적용한 뒤 추첨하기를 눌러주세요.</div>
-                    </div>
-                    <div class="lotto-bottom-row">
-                        <button class="lotto-secondary" id="clearWinnersBtn" type="button">결과 지우기</button>
-                    </div>
-                </section>
                 <section class="lotto-settings">
                     <p class="lotto-label">추첨 방식</p>
                     <div class="lotto-segment" role="group" aria-label="추첨 방식">
@@ -1275,9 +1249,15 @@
                     </div>
                 </section>
                 <div class="lotto-actions">
-                    <button class="lotto-primary" id="importParticipantsBtn" type="button">👫 맴버갱신</button>
+                    <button class="lotto-primary" id="importParticipantsBtn" type="button">👫 블러오기</button>
                     <button class="lotto-primary" id="drawBtn" type="button">✨ 추첨하기</button>
                 </div>
+				<section class="lotto-winner-card">
+                    <div class="lotto-list-title"><span>🏆 당첨자 명단 (<span id="winnerCount2">0</span>)</span></div>
+                    <div class="lotto-winner-list" id="winnerList">
+                        <div class="lotto-empty">명단을 적용한 뒤 추첨하기를 눌러주세요.</div>
+                    </div>
+                </section>
             </main>
         </div>
     </div>
@@ -2349,7 +2329,7 @@
             function startDrawing() {
                 if (drawing) return;
                 if (!balls.length) { toast(lottoParticipants.length ? '모든 참가자가 당첨됐어요. 초기화하거나 명단을 다시 적용하세요.' : '먼저 참가자 명단을 적용해주세요.'); return }
-                drawing = true; $('drawBtn').disabled = true; $('drawBtn').textContent = '🎱 공을 섞는 중…'; mixState = true; $('stageCaption').textContent = '행운의 공을 섞고 있어요…';
+                drawing = true; $('drawBtn').disabled = true; $('drawBtn').textContent = '🎱 추첨 중…'; mixState = true; $('stageCaption').textContent = '행운의 공을 섞고 있어요…';
                 const count = mode === 'single' ? 1 : Math.min(Math.max(1, parseInt($('drawCount').value) || 1), balls.length);
                 const started = performance.now();
                 const initialMixMs = mode === 'batch' ? 2000 : 3000;
@@ -2418,11 +2398,11 @@
             $('singleMode').addEventListener('click', () => setMode('single')); $('batchMode').addEventListener('click', () => setMode('batch'));
             $('drawCount').addEventListener('input', () => $('drawCountLabel').textContent = $('drawCount').value);
             $('drawBtn').addEventListener('click', startDrawing);
-            $('clearWinnersBtn').addEventListener('click', () => { if (drawing) return; winners = []; makeBalls(); refresh(); $('stageCaption').textContent = '당첨 결과를 지웠어요'; toast('당첨 결과를 지웠어요.') });
             $('importParticipantsBtn').addEventListener('click', importFromTeamParticipants);
             $('modalOk').addEventListener('click', closeModal);
             $('modalOverlay').addEventListener('click', e => { if (e.target === $('modalOverlay') && !drawing) closeModal() });
-            applyNames(); setMode('single'); animate();
+			setMode('single');
+			animate();
         })();
 
         function updateRankingSheet(button) {
