@@ -1,12 +1,75 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>백스모 협찬물품 관리대장</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>백스모 협찬물품 관리대장</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden; /* 부모 페이지 스크롤 완전 차단 */
+      background-color: #000;
+    }
+
+    /* 전체화면 iframe 스타일 */
+    #app-frame {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100dvh;
+      border: none;
+      display: block;
+      /* 아이폰 노치 영역 대응 */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* 안드로이드 전체화면 유도 버튼 (iframe 위에 띄움) */
+    #fullscreen-btn {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 12px 22px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: bold;
+      z-index: 9999;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <iframe src="https://script.google.com/macros/s/AKfycbxtv2qhyEeKs9xUWRSMewXRunsOuBTbOHrG3KUTycZISgfslDcfM2810Qo2pi3Nr8DpQQ/exec" frameborder="0" width="100%" height="900px"></iframe>
+
+  <!-- allow="fullscreen" 속성이 있어야 내부에서도 전체화면 권한이 허용됨 -->
+  <iframe 
+    id="app-frame" 
+    src="https://script.google.com/macros/s/AKfycbxtv2qhyEeKs9xUWRSMewXRunsOuBTbOHrG3KUTycZISgfslDcfM2810Qo2pi3Nr8DpQQ/exec" 
+    allow="fullscreen; autoplay; camera; microphone" 
+    allowfullscreen>
+  </iframe>
+
+  <script>
+    const frame = document.getElementById('app-frame');
+
+    // iOS 주소창 높이 변화 시 iframe 높이 실시간 동기화
+    function syncHeight() {
+      frame.style.height = window.innerHeight + 'px';
+    }
+    window.addEventListener('resize', syncHeight);
+    syncHeight();
+  </script>
 </body>
 </html>
